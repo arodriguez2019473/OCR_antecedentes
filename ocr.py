@@ -1,3 +1,6 @@
+import fitz
+# toco instalar esta madre para menejar los pdf cambios de ultima hora
+
 import easyocr
 # si no tienes la libreria instalada, usa: pip install easyocr pillow a pq si no la tienes no jala el codigo que pendejo
 # esta libreria nos servira para poder leer el texto de la imagen
@@ -18,7 +21,7 @@ reader = easyocr.Reader(['es'])
 # https://www.jaided.ai/easyocr/tutorial/ ---> aqui esta la documentacion de easyocr esta en ingles aprende ingles wey
 
 # ahora aca ni idea que hacer a futuro XD
-pdf_path = "rutabienendeja alv.pdf"
+pdf_path = "AntecedentePolicial.pdf"
 
 pages = convert_from_path(pdf_path)
 # ahora convierto a tu jefa en imagenes
@@ -44,16 +47,18 @@ for i, page in enumerate(pages):
     # ademas de que asi saben en que pagina va el proceso
     # es mi console en vivo cabron capo master papu amen
 
-    pages.save("temp_page.jpg", "PNG")
+    page.save("temp_page.jpg", "PNG")
     # guardamos la pagina temporalmente con el formato de png osea tus jefas
     # no le pongo al temp_page otro nombre por que luego se me hace un desmadre wey y yo toy bien menso
-    
+    # resulta que era page no pages nms 
+
+
     result = reader.readtext("temp_page.jpg")
     # ahora si leemos a tu jefa con easyocr wey si no entendiste nada de lo de arriba wey
     # aqui guardamos el resultado en una variable llamada result y lo leemos con el reader que es
     # el easyocr que inicializamos arriba awebo, ni yo me entiendo haste grande preguntale a chatgpt wey o a mi mama
 
-    for (_, text, fe ) in result:
+    for (_, text, conf ) in result:
         texts += text + " "
 
     # te preguntas que hice aqui wey?
