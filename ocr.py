@@ -1,83 +1,83 @@
-import fitz
-# toco instalar esta madre para menejar los pdf cambios de ultima hora
-
-import easyocr
-# si no tienes la libreria instalada, usa: pip install easyocr pillow a pq si no la tienes no jala el codigo que pendejo
-# esta libreria nos servira para poder leer el texto de la imagen
-
-from pdf2image import convert_from_path
-# esto me lo saque de un video de youtube XD
-# a tambien es una libreria que convierte pdfs en imagenes
-# esto lo voy a meter en el aplicativo pa que ya no lo instalen externamente
-
-from io import BytesIO
-# entonces importamos bytesio para manejar las imagenes en memoria
+# ingatumare ad ocr module
+# ya me enoje >:(
+# si ves esto, felicidades, has encontrado un easter egg
 
 from PIL import Image
-# utilizamos a pilow para el manejo de imagenes y poder utilizarlas en el easyocr ahuevo
 
+import pytesseract
+import pdf2image
+import traceback
 
-reader = easyocr.Reader(['es'])
-# https://www.jaided.ai/easyocr/tutorial/ ---> aqui esta la documentacion de easyocr esta en ingles aprende ingles wey
-
-# ahora aca ni idea que hacer a futuro XD
-pdf_path = "AntecedentePolicial.pdf"
-
-pages = convert_from_path(pdf_path)
-# ahora convierto a tu jefa en imagenes
-# sigueme en mis canales oficiales de twitch y youtube :v que no tengo XD
-
-texts = ""
-#  esta madre va a guardar el peso de tu jefa osea el texto extraido de la imagen
-# osea si estas bien wey es una variable vacia tambien se puede cambiar a una lista pero ya despues lo uno si me da ganas
-# me acabo de fijar que la variable lo podia poner primero y despues el for pero ya ni modo wey 
-# que lo arregle el senior
-# a nms yo soy el senior aqui XD
-
-for i, page in enumerate(pages):
-    # pa que no digas que no soy culero aca te explico cabron
-    # aqui recorremos cada pagina que se convirtio en imagen por que podes estar bien wey y tener un pdf
-    # de 100 paginas y pues no voy a leer solo la primera wey no tamos pendejos o si no se
-    # bueno ya me perdi wey
-    # a si el enumerate es para que me de el indice de la pagina por si quiero guardarla o algo
-    # no es necesario pero pues ya lo puse wey yo soy asi de chido
+def borrado_texto(text):
     
-    print(f"Procesando la pagina - {i+1}")
-    # esto es para que la gente vea que soy chido y que si le se y funcione 
-    # ademas de que asi saben en que pagina va el proceso
-    # es mi console en vivo cabron capo master papu amen
+    # aca va la funcion de borrado de texto sensible 
+    lines = text.split('\n')
+    # lines es una lista de strings es una variable temporal si quieres le cambias el nombre pa que trueene mas sentido
+    # para sacar este simbolo raro \ se presiona las teclas alt + 92
+    borrado_lines = []
 
-    page.save("temp_page.jpg", "PNG")
-    # guardamos la pagina temporalmente con el formato de png osea tus jefas
-    # no le pongo al temp_page otro nombre por que luego se me hace un desmadre wey y yo toy bien menso
-    # resulta que era page no pages nms 
+    # esto que hare lo vi en un video de youtube y starkoverflow
+    for line in lines:
+        
+        line = line.strip()
+        if len(line)< 2:
+            continue
+            # continue es para saltarse la iteracion actual y pasar a la siguiente como tu ex cuando te veia y no queria hablarte 
+        
+        special_char_ratio = sum(
+            not c.isalnum()
+            and not c.isspace()
+            for c in line) / len(line) #<---- ojo aca cerramos el sum no estes 30 minutos como yo buscando el error
+            
+        if special_char_ratio > 0.5:
+            continue    
 
+        # que hice ahi
+        # pues basicamente contamos cuantos caracteres especiales hay en la linea y lo dividimos entre la longitud de la linea
+        # asi obtenemos un ratio de caracteres especiales
+        # ejemplo de bebe si tu ex te hablaba 10 veces al dia y 5 de esas veces eran para pedirte dinero
+        # el ratio de veces que te hablaba para pedir dinero era de 5/10
+        # si el ratio es mayor a 0.5 (50%) entonces consideramos que la linea tiene mucho texto sensible y la borramos de nuestra vida ella no vale la pena  
+        # pero si te hablaba 2 veces al dia y solo 1 de esas veces era para pedirte dinero
+        # era bien confiable tu ex y no la borrabas de tu vida
+        # pero aun asi no vuelvas con ella
+        
+        if len(set(line.replace("",""))) <= 3 and len(line) > 5:
+            continue
+        # aca ya vemos que ella no vale la pena
+        # si la linea tiene 5 o mas caracteres y solo tiene 3 caracteres unicos o menos
+        # entonces la borramos de nuestra vida a chingar a su madre
+        
+        borrado_lines.append(line)
 
-    result = reader.readtext("temp_page.jpg")
-    # ahora si leemos a tu jefa con easyocr wey si no entendiste nada de lo de arriba wey
-    # aqui guardamos el resultado en una variable llamada result y lo leemos con el reader que es
-    # el easyocr que inicializamos arriba awebo, ni yo me entiendo haste grande preguntale a chatgpt wey o a mi mama
+    return '\n'.join(borrado_lines)
+    # para mejor explicacion preguntale alguna ia como chatgpt o bard
 
-    for (_, text, conf ) in result:
-        texts += text + " "
-
-    # te preguntas que hice aqui wey?
-    # pues recorri el resultado que me dio easyocr y saque solo el texto
-    # el resultado es una lista de tuplas donde cada tupla tiene 3 elementos
-    # el primero es la posicion del texto en la imagen (que no me importa)
-    # el segundo es el texto que se encontro
-    # y el tercero es la confianza del reconocimiento (que tampoco me importa)
-    # entonces solo saque el segundo elemento de cada tupla y lo agregue a la variable texts
-    # y le agregue un salto de linea para que no se junte todo wey
-    # asi de facil wey no entendiste nada wey pos no lo toques wey
-    # eso me decia la documentacion de easyocr XD
-    # https://www.jaided.ai/easyocr/tutorial/
-    # fe es por confidence feeler 
-
-    print("\n texto detectado:\n")
-    # \n es para hacer un salto de linea
-    # \ si quieren sacar este simbolo busquen en google papu
+def procesar_pdf(pdf_path):
+    # vamos a convertir el pdf en imagenes el codigo lo saque de la documentacion de pdf2image
+    # https://pdf2image.readthedocs.io/en/latest/
+    # y una ayudadita de ias XD
     
-    print(texts)
-    # ese print es clave 
-    # bombardeen peru
+    try:
+        images = pdf2image.convert_from_path(pdf_path, dpi=300)
+        extracted_text = ""
+
+        for i, image in enumerate(images, 1):
+            
+            text = pytesseract.image_to_string(image, lang='spa', config='--psm 6')
+
+            text = borrado_texto(text)
+
+            if text.strip():
+                extracted_text += "\n--- pagina {i} ----\n {text}\n"
+
+        return extracted_text, None
+
+    except Exception as e:
+        return "", "pa error al procesar el pdf"
+
+# el try except es para manejar errores
+# si algo sale mal en el bloque try
+# este wey lo va a agarrar y ejecutar el bloque except
+# es como tu amigo que te dice que tu ex no vale la pena cuando estas triste
+# y te ayuda a seguir adelante sin llorar por ella
