@@ -1,12 +1,11 @@
 # ingatumare ad ocr module
 # ya me enoje >:(
 # si ves esto, felicidades, has encontrado un easter egg
-
 from PIL import Image
 
 import pytesseract
 import pdf2image
-import traceback
+# import traceback
 
 def borrado_texto(text):
     
@@ -24,11 +23,15 @@ def borrado_texto(text):
             continue
             # continue es para saltarse la iteracion actual y pasar a la siguiente como tu ex cuando te veia y no queria hablarte 
         
-        special_char_ratio = sum(
+        special_char_ratio =( sum(
             not c.isalnum()
             and not c.isspace()
             for c in line) / len(line) #<---- ojo aca cerramos el sum no estes 30 minutos como yo buscando el error
-            
+
+            if line else 0 
+            # esto es por si la linea esta vacia para evitar division por cero
+        )
+        
         if special_char_ratio > 0.5:
             continue    
 
@@ -42,7 +45,7 @@ def borrado_texto(text):
         # era bien confiable tu ex y no la borrabas de tu vida
         # pero aun asi no vuelvas con ella
         
-        if len(set(line.replace("",""))) <= 3 and len(line) > 5:
+        if len(set(line.replace(" ",""))) <= 3 and len(line) > 5:
             continue
         # aca ya vemos que ella no vale la pena
         # si la linea tiene 5 o mas caracteres y solo tiene 3 caracteres unicos o menos
@@ -64,12 +67,15 @@ def procesar_pdf(pdf_path):
 
         for i, image in enumerate(images, 1):
             
-            text = pytesseract.image_to_string(image, lang='spa', config='--psm 6')
+            try:
+                text = pytesseract.image_to_string(image, lang='spa', config='--psm 6')
+            except Exception:
+                text = pytesseract.image_to_string(image, lang='eng', config='--psm 6')
 
             text = borrado_texto(text)
 
             if text.strip():
-                extracted_text += "\n--- pagina {i} ----\n {text}\n"
+                extracted_text += f"\n--- página {i} ---\n{text}\n"
 
         return extracted_text, None
 
