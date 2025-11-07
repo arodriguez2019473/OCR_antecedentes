@@ -6,7 +6,7 @@ import tkinter as tk
 
 
 def main():
-
+    
     # print("Iniciando la aplicacion...")
     # print("Aplicacion iniciada correctamente.")
 
@@ -16,3 +16,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+

@@ -2,7 +2,7 @@ import tkinter as tk
 import os
 
 from tkinter import filedialog, messagebox, scrolledtext
-from ocr import procesar_pdf, borrado_texto
+from ocr import procesar_pdf, borrado_texto, verificar, Datos
 from config import configure_tesseract
 
 class PDFOCRApp:
@@ -110,6 +110,7 @@ class PDFOCRApp:
         self.text_area.insert(tk.END, "Procesando PDF... Por favor espere...\n")
         self.root.update()
 
+        # Procesar el PDF
         extracted_text, error_msg = procesar_pdf(self.pdf_path)
 
         self.text_area.delete(1.0, tk.END)
@@ -122,6 +123,15 @@ class PDFOCRApp:
             self.text_area.insert(tk.END, extracted_text)
             self.save_button.config(state=tk.NORMAL)
             messagebox.showinfo("Éxito", "Texto extraído correctamente")
+
+            # Verificar antecedentes automáticamente
+            resultado = verificar(extracted_text)
+            self.text_area.insert(tk.END, f"\n\n--- Resultado de verificación ---\n{resultado}")
+            messagebox.showinfo("Verificación completada", resultado)
+        
+            info = Datos(extracted_text)
+            print(info)
+
         else:
             self.text_area.insert(tk.END, "No se encontró texto legible en el PDF.")
 

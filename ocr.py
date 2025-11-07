@@ -6,6 +6,7 @@ from PIL import Image
 import pytesseract
 import pdf2image
 # import traceback
+import re
 
 def borrado_texto(text):
     
@@ -87,3 +88,80 @@ def procesar_pdf(pdf_path):
 # este wey lo va a agarrar y ejecutar el bloque except
 # es como tu amigo que te dice que tu ex no vale la pena cuando estas triste
 # y te ayuda a seguir adelante sin llorar por ella
+
+def verificar(texto):
+    # al chile no se que hacer aqui
+    # asi que solo voy a poner una funcion que verifique si hay antecedentes o no
+
+    texto = texto.upper()
+
+    # esto pondre por que lei por ahi que hay que poner tildes para verificar bien
+
+    texto = re.sub(r"[ÁÀÄÂ]", "A", texto)
+    texto = re.sub(r"[ÉÈËÊ]", "E", texto)
+    texto = re.sub(r"[ÍÌÏÎ]", "I", texto)
+    texto = re.sub(r"[ÓÒÖÔ]", "O", texto)
+    texto = re.sub(r"[ÚÙÜÛ]", "U", texto)
+    
+    # esto dicen por ahi que sirve para normalizar el texto por eso lo puse 
+
+    if "—— NO TIENE ANTECEDENTES POLICIALES ——" in texto:
+        return "no hay antecedentes "
+
+    elif "*** NO LE APARECEN ANTECEDENTES PENALES ***" in texto:
+        return "no tiene antecedentes"
+    
+    elif "TIENE ANTECEDENTES POLICIALES" in texto:
+        return "tiene antecedentes"
+    
+    elif "TIENE ANTECEDENTES PENALES" in texto:
+        return "tiene antecedentes"
+    
+    else: 
+        return"posiblemente tiene antecedentes"
+    
+    # esto es bien basico pero ni siquiera te voy a explicar mamon 
+
+
+def Datos(texto):
+
+    # esto lo aprendi de choloma 
+    
+    texto = texto.upper()
+    texto = re.sub(r"[ÁÀÄÂ]", "A", texto)
+    texto = re.sub(r"[ÉÈËÊ]", "E", texto)
+    texto = re.sub(r"[ÍÌÏÎ]", "I", texto)
+    texto = re.sub(r"[ÓÒÖÔ]", "O", texto)
+    texto = re.sub(r"[ÚÙÜÛ]", "U", texto)
+
+    texto = re.sub(r"[áàäâ]", "a", texto)
+    texto = re.sub(r"[éèëê]", "e", texto)
+    texto = re.sub(r"[íìïî]", "i", texto)
+    texto = re.sub(r"[óòöô]", "o", texto)
+    texto = re.sub(r"[úùüû]", "u", texto)
+
+
+    datos = {
+
+        "nombres":str,
+        "apellido":str,
+        # "DPI":None,
+        "CUI":None
+    }
+
+    nombres_antecedente = re.search(r"NOMBRES?\s*[:\-]?\s*([A-Z\s]+)", texto)
+    apellidos_antecedente = re.search(r"APELLIDOS?\s*[:\-]?\s*([A-Z\s]+)", texto)
+    dpi_antecedente = re.search(r"CUI\s*[:\-]?\s*(\d{4,})", texto)
+
+    if nombres_antecedente:
+        datos["nombres"] = nombres_antecedente.group(1).strip()
+
+    if apellidos_antecedente:
+        datos["apellido"] = apellidos_antecedente.group(1).strip()
+
+    if dpi_antecedente:
+        datos["CUI"] = dpi_antecedente.group(1).strip()
+
+    return datos
+
+

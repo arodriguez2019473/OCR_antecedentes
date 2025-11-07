@@ -29,3 +29,4 @@ def configure_tesseract():
         )
 
 # esto si utilice ia para hacerlo mas rapido
+
