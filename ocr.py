@@ -3,10 +3,16 @@
 # si ves esto, felicidades, has encontrado un easter egg
 from PIL import Image
 
+from pyzbar.pyzbar import decode
+import cv2
+import pandas as pd
+import numpy as np
+
 import pytesseract
 import pdf2image
 # import traceback
 import re
+
 
 def borrado_texto(text):
     
@@ -165,3 +171,21 @@ def Datos(texto):
     return datos
 
 
+def leer_qr_de_pdf(pdf_path):
+    images = pdf2image.convert_from_path(pdf_path, dpi=300)
+    for image in images:
+        img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        codigos = decode(img_cv)
+        if codigos:
+            return codigos[0].data.decode('utf-8')
+    return None
+
+
+def guardar_en_excel(datos, archivo="datos_validacion.xlsx"):
+    df = pd.DataFrame([datos])
+    try:
+        old = pd.read_excel(archivo)
+        df = pd.concat([old, df], ignore_index=True)
+    except:
+        pass
+    df.to_excel(archivo, index=False)

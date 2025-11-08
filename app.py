@@ -2,8 +2,10 @@
 # lo hago pa que se vea mas profesional / mas vrg creo
 
 from interfaz import PDFOCRApp
-import tkinter as tk
+from selenium import webdriver
 
+import tkinter as tk
+import webbrowser
 
 def main():
     
@@ -16,7 +18,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
 
