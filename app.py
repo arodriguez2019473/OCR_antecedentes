@@ -5,7 +5,6 @@ from interfaz import PDFOCRApp
 from selenium import webdriver
 
 import tkinter as tk
-import webbrowser
 
 def main():
     

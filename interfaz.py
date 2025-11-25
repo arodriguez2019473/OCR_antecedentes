@@ -5,6 +5,8 @@ import webbrowser
 from tkinter import filedialog, messagebox, scrolledtext
 from ocr import procesar_pdf, borrado_texto, verificar, Datos, guardar_en_excel, leer_qr_de_pdf
 from config import configure_tesseract
+from ocr import validar_qr_en_edge
+
 
 class PDFOCRApp:
     def __init__(self, root):
@@ -46,13 +48,14 @@ class PDFOCRApp:
         self.btn_policial = tk.Button(
             main_frame,
             text="📄 Subir Antecedentes POLICIALES",
-            command=self.cargar_policiacos,
+            command=self.cargar_policiales,  # ← Aquí el nombre correcto
             font=("Arial", 12),
             bg="#4CAF50",
             fg="white",
             padx=20,
             pady=10
         )
+
         self.btn_policial.pack(pady=10)
 
         self.btn_penal = tk.Button(
@@ -66,6 +69,18 @@ class PDFOCRApp:
             pady=10
         )
         self.btn_penal.pack(pady=10)
+
+        self.btn_validar = tk.Button(
+            main_frame,
+            text="✅ Validar y Guardar",
+            command=self.validar_y_guardar,
+            font=("Arial", 12),
+            bg="#009688",
+            fg="white",
+            padx=20,
+            pady=10
+        )
+        self.btn_validar.pack(pady=15)
 
 
         self.file_label = tk.Label(
@@ -208,68 +223,55 @@ class PDFOCRApp:
 # lo hice con ia
 # claro ya que lo revise y edite un poco para que quedara a mi gusto
 
-    def cargar_policiacos(self):
-        
-        file_path = filedialog.askopenfilename(filetypes=[("PDF", "*.pdf*")])
-
+    def cargar_policiales(self):
+        file_path = filedialog.askopenfilename(filetypes=[("PDF", "*.pdf")])
         if not file_path:
-            
             return
 
-        texto, err = procesar_pdf(file_path)
-        
+        self.texto_policial, err = procesar_pdf(file_path)
         if err:
-        
-            messagebox.showerror("Error we", err)
+            messagebox.showerror("Error", err)
             return
 
-        self.texto_policial = texto
-        self.datos_persona = Datos(texto)
+        self.datos_persona = Datos(self.texto_policial)
+        self.qr_policial = leer_qr_de_pdf(file_path)
 
         self.text_area.delete(1.0, tk.END)
-        self.text_area.insert(tk.END, "Antecedentes policiacos cargados \n\n")
-        self.text_area.insert(tk.END, texto)
-        
-        print("\n datos extraidos(Policiales)")
-        print(self.datos_persona)
-        print("_______________________________")
+        self.text_area.insert(tk.END, "✅ Antecedentes POLICIALES cargados\n\n")
+        self.text_area.insert(tk.END, self.texto_policial)
+
+        messagebox.showinfo("Listo", "Se cargaron los antecedentes policiales.")
+
 
     def cargar_penales(self):
-        
-        file_path = filedialog.askopenfilename(filetypes=[("PDF", "*.pdf*")])
-        
+        file_path = filedialog.askopenfilename(filetypes=[("PDF", "*.pdf")])
         if not file_path:
             return
-        
-        texto, err = procesar_pdf(file_path)
 
+        self.texto_penal, err = procesar_pdf(file_path)
         if err:
-            
-            messagebox.showerror("Error en algo", err)
+            messagebox.showerror("Error", err)
             return
 
-        self.texto_penal = texto
+        self.qr_penal = leer_qr_de_pdf(file_path)
 
         self.text_area.delete(1.0, tk.END)
-        self.text_area.insert(tk.END, "antecedentes penales cargados\n\n")
-        self.text_area.insert(tk.END, texto)
+        self.text_area.insert(tk.END, "✅ Antecedentes PENALES cargados\n\n")
+        self.text_area.insert(tk.END, self.texto_penal)
 
-        self.verificar_todo()
+        messagebox.showinfo("Listo", "Se cargaron los antecedentes penales.")
 
     
     # ahora si se viene lo divertido verificar todo alv
 
     def verificar_todo(self):
-
         if not self.texto_policial or not self.texto_penal:
             messagebox.showwarning("Falta archivos","suba los dos archivos antes de extraer datos")
-            
             return
         
-        resultado_policiaco = verificar(self.texto_penal)
-        resultado_penal = verificar(self.texto_policial)
+        resultado_policiaco = verificar(self.texto_policial)
+        resultado_penal = verificar(self.texto_penal)
 
-        
         self.text_area.insert(tk.END, "\n\n--- RESULTADO FINAL ---\n")
         self.text_area.insert(tk.END, f"Antecedentes Policiales: {resultado_policiaco}\n")
         self.text_area.insert(tk.END, f"Antecedentes Penales: {resultado_penal}\n\n")
@@ -278,11 +280,64 @@ class PDFOCRApp:
         self.text_area.insert(tk.END, f"Apellidos: {self.datos_persona.get('apellido', 'No detectado')}\n")
         self.text_area.insert(tk.END, f"CUI: {self.datos_persona.get('CUI', 'No detectado')}\n")
 
+
         print("\n✅ VERIFICACIÓN COMPLETA")
         print("Policiales:", resultado_policiaco)
         print("Penales:", resultado_penal)
         print("Datos:", self.datos_persona)
         print("--------------------------------------------")
 
+    def validar_y_guardar(self):
+        if not self.texto_policial or not self.texto_penal:
+            messagebox.showerror("Error", "Debe cargar ambos PDFs primero")
+            return
 
-    
+        datos_policial = Datos(self.texto_policial)
+        datos_penal = Datos(self.texto_penal)
+
+        # ----------- PRIMERO ABRIR LOS QR EN EDGE -----------
+        validar_qr_en_edge(self.qr_policial)
+        validar_qr_en_edge(self.qr_penal)
+
+        messagebox.showinfo(
+            "Validación manual requerida",
+            "Se han abierto los QR en Edge.\n"
+            "Verifique visualmente los datos en las páginas abiertas.\n"
+            "Luego responda las preguntas."
+        )
+
+        # ----------- LUEGO HACEMOS LAS PREGUNTAS -----------
+
+        resp_policial = messagebox.askyesno(
+            "Validación de Datos - POLICIALES",
+            "¿Coinciden los datos del documento POLICIAL?"
+        )
+        resultado_policial = "✅ Coinciden" if resp_policial else "❌ No coinciden"
+
+        resp_penal = messagebox.askyesno(
+            "Validación de Datos - PENALES",
+            "¿Coinciden los datos del documento PENAL?"
+        )
+        resultado_penal = "✅ Coinciden" if resp_penal else "❌ No coinciden"
+
+        # ----------- GUARDAR EN EXCEL -----------
+
+
+
+        guardar_en_excel({
+            "Nombres": datos_policial.get("nombres"),
+            "Apellidos": datos_policial.get("apellido"),
+            "CUI": datos_policial.get("CUI"),
+            "Resultado Policial": resultado_policial,
+            "Resultado Penal": resultado_penal,
+            "QR Policial": self.qr_policial,
+            "QR Penal": self.qr_penal
+        })
+
+        # ----------- MOSTRAR RESULTADO EN LA PANTALLA -----------
+
+        self.text_area.insert(tk.END, "\n\n--- RESULTADO FINAL ---\n")
+        self.text_area.insert(tk.END, f"Policiales: {resultado_policial}\n")
+        self.text_area.insert(tk.END, f"Penales: {resultado_penal}\n")
+
+        messagebox.showinfo("✅ Finalizado", "Los datos fueron guardados en Excel correctamente.")

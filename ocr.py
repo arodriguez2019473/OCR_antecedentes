@@ -7,6 +7,11 @@ from pyzbar.pyzbar import decode
 import cv2
 import pandas as pd
 import numpy as np
+import subprocess
+
+from selenium import webdriver
+from selenium.webdriver.edge.service import Service
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 import pytesseract
 import pdf2image
@@ -189,3 +194,14 @@ def guardar_en_excel(datos, archivo="datos_validacion.xlsx"):
     except:
         pass
     df.to_excel(archivo, index=False)
+
+def validar_qr_en_edge(url):
+    try:
+        subprocess.Popen(["msedge", url])
+        return "OK"
+    except FileNotFoundError:
+        try:
+            subprocess.Popen(["C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe", url])
+            return "OK"
+        except:
+            return "No se pudo abrir Microsoft Edge"
